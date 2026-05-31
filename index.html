@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تشفير ملفات بايثون</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.1;
+            animation: floatCircle 20s infinite ease-in-out;
+        }
+
+        .bg-circle:nth-child(1) {
+            width: 350px; height: 350px;
+            background: #00ff88;
+            top: -80px; left: -80px;
+        }
+
+        .bg-circle:nth-child(2) {
+            width: 300px; height: 300px;
+            background: #00aaff;
+            bottom: -60px; right: -60px;
+            animation-delay: -10s;
+        }
+
+        @keyframes floatCircle {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(40px, -20px) scale(1.1); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 0 15px;
+        }
+
+        .header .logo { font-size: 55px; }
+
+        .header h1 {
+            font-size: 30px;
+            background: linear-gradient(135deg, #00ff88, #00aaff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 8px 0;
+        }
+
+        .header p {
+            color: #777;
+            font-size: 13px;
+            letter-spacing: 2px;
+        }
+
+        .main-card {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 18px;
+            padding: 25px;
+            margin: 15px 0;
+        }
+
+        .upload-zone {
+            border: 2px dashed #333;
+            border-radius: 14px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .upload-zone:hover {
+            border-color: #00ff88;
+            background: rgba(0,255,136,0.03);
+        }
+
+        .upload-zone .icon { font-size: 65px; margin-bottom: 10px; }
+        .upload-zone h3 { font-size: 18px; margin-bottom: 5px; }
+        .upload-zone p { color: #666; font-size: 13px; }
+        .upload-zone input { display: none; }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .options { grid-template-columns: 1fr; }
+        }
+
+        .opt-group {
+            background: #0d0d0d;
+            border: 1px solid #222;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .opt-group label {
+            display: block;
+            color: #888;
+            font-size: 11px;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .opt-group select, .opt-group input {
+            width: 100%;
+            padding: 11px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #000;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .opt-group select:focus, .opt-group input:focus {
+            border-color: #00ff88;
+        }
+
+        select option { background: #111; color: #fff; }
+
+        .key-display {
+            background: #000;
+            border: 1px solid #222;
+            border-radius: 10px;
+            padding: 14px;
+            margin-top: 18px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .key-display .key-label {
+            color: #888;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .key-display .key-value {
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .key-display .copy-btn {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .btn-encrypt {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #00ff88, #00aaff);
+            color: #000;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+
+        .btn-encrypt:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,255,136,0.3);
+        }
+
+        .btn-encrypt:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .file-info-bar {
+            display: none;
+            text-align: center;
+            margin-top: 12px;
+            color: #00ff88;
+            font-size: 14px;
+        }
+
+        .files-list {
+            margin-top: 25px;
+        }
+
+        .files-list h3 {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .files-list .badge {
+            background: #00ff88;
+            color: #000;
+            padding: 2px 9px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .file-item {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .file-item .file-name {
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .file-item .file-meta {
+            color: #666;
+            font-size: 11px;
+        }
+
+        .file-item .dl-btn {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            text-decoration: none;
+        }
+
+        .toast {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: #111;
+            border: 1px solid #00ff88;
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 10px;
+            z-index: 1000;
+            font-size: 13px;
+            animation: slideIn 0.4s ease;
+            max-width: 320px;
+        }
+
+        .toast.error { border-color: #ff4466; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(80px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #555;
+            font-size: 11px;
+            margin-top: 20px;
+        }
+
+        .footer span { color: #00ff88; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-animation">
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+    </div>
+
+    <div class="container">
+
+        <div class="header">
+            <div class="logo">🔐</div>
+            <h1>تشفير ملفات بايثون</h1>
+            <p>ZEROTRACE SECURITY</p>
+        </div>
+
+        <div class="main-card">
+
+            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                <div class="icon">📁</div>
+                <h3>اسحب وأفلت ملف .py هنا</h3>
+                <p>أو اضغط للتصفح</p>
+                <input type="file" id="fileInput" accept=".py" onchange="handleFileSelect(event)">
+            </div>
+
+            <div class="file-info-bar" id="fileInfo">
+                ✅ <span id="fileName"></span> - <span id="fileSize"></span>
+            </div>
+
+            <div class="options">
+                <div class="opt-group">
+                    <label>🔰 مستوى التشفير</label>
+                    <select id="encLevel">
+                        <option value="basic">أساسي (XOR)</option>
+                        <option value="medium">متوسط (AES-128)</option>
+                        <option value="high">عالي (AES-256 + XOR)</option>
+                    </select>
+                </div>
+                <div class="opt-group">
+                    <label>🔑 كلمة المرور (اختياري)</label>
+                    <input type="text" id="password" placeholder="اتركه فارغاً لمفتاح عشوائي">
+                </div>
+            </div>
+
+            <div class="key-display" id="keyDisplay">
+                <span class="key-label">🔑 المفتاح:</span>
+                <span class="key-value" id="encKey"></span>
+                <button class="copy-btn" onclick="copyKey()">📋 نسخ</button>
+            </div>
+
+            <button class="btn-encrypt" id="encBtn" onclick="encryptFile()" disabled>
+                🔐 تشفير الملف
+            </button>
+        </div>
+
+        <div class="files-list" id="filesList" style="display:none;">
+            <h3>📦 الملفات المشفرة <span class="badge" id="filesCount">0</span></h3>
+            <div id="filesContainer"></div>
+        </div>
+
+        <div class="footer">
+            🛡️ <span>ZeroTrace</span> | تشفير ملفات بايثون | © 2024
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        let encryptedFiles = [];
+
+        try {
+            const saved = localStorage.getItem('zt_files');
+            if (saved) encryptedFiles = JSON.parse(saved);
+            renderFiles();
+        } catch(e) {}
+
+        const uploadZone = document.getElementById('uploadZone');
+
+        uploadZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#00ff88';
+            this.style.background = 'rgba(0,255,136,0.05)';
+        });
+
+        uploadZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#333';
+            this.style.background = 'transparent';
+        });
+
+        uploadZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#333';
+            this.style.background = 'transparent';
+            const files = e.dataTransfer.files;
+            if (files.length > 0) handleFile(files[0]);
+        });
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) handleFile(file);
+        }
+
+        function handleFile(file) {
+            if (!file.name.endsWith('.py')) {
+                showToast('❌ يرجى اختيار ملف .py فقط', 'error');
+                return;
+            }
+            if (file.size > 10 * 1024 * 1024) {
+                showToast('❌ حجم الملف كبير (الحد 10MB)', 'error');
+                return;
+            }
+
+            selectedFile = file;
+            document.getElementById('fileInfo').style.display = 'block';
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = formatSize(file.size);
+            document.getElementById('encBtn').disabled = false;
+        }
+
+        async function encryptFile() {
+            if (!selectedFile) return;
+
+            const btn = document.getElementById('encBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ جاري التشفير...';
+
+            try {
+                const content = await readFile(selectedFile);
+                const level = document.getElementById('encLevel').value;
+                const password = document.getElementById('password').value;
+                let encrypted, key;
+
+                switch(level) {
+                    case 'basic':
+                        const r1 = basicEncrypt(content);
+                        encrypted = r1.encrypted; key = r1.key;
+                        break;
+                    case 'medium':
+                        const r2 = await mediumEncrypt(content, password);
+                        encrypted = r2.encrypted; key = r2.key;
+                        break;
+                    case 'high':
+                        const r3 = await highEncrypt(content, password);
+                        encrypted = r3.encrypted; key = r3.key;
+                        break;
+                }
+
+                const ts = new Date().toISOString().slice(0,10).replace(/-/g,'');
+                const rid = Math.random().toString(36).substring(2,8);
+                const origName = selectedFile.name.replace('.py','');
+                const encName = origName + '_encrypted_' + ts + '_' + rid + '.pye';
+
+                const fileData = {
+                    id: rid + ts,
+                    origName: selectedFile.name,
+                    encName: encName,
+                    encContent: encrypted,
+                    key: key,
+                    level: level,
+                    size: selectedFile.size,
+                    date: new Date().toLocaleString('ar-SA')
+                };
+
+                encryptedFiles.unshift(fileData);
+                if (encryptedFiles.length > 20) encryptedFiles = encryptedFiles.slice(0,20);
+                localStorage.setItem('zt_files', JSON.stringify(encryptedFiles));
+
+                document.getElementById('keyDisplay').style.display = 'flex';
+                document.getElementById('encKey').textContent = key;
+
+                downloadBlob(encrypted, encName);
+                renderFiles();
+                showToast('✅ تم تشفير الملف بنجاح!');
+                resetForm();
+
+            } catch(e) {
+                showToast('❌ خطأ: ' + e.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔐 تشفير الملف';
+            }
+        }
+
+        function basicEncrypt(content) {
+            const key = genKey(16);
+            let enc = '';
+            for (let i = 0; i < content.length; i++) {
+                enc += String.fromCharCode(content.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+            }
+            return { encrypted: btoa(enc), key: key };
+        }
+
+        async function mediumEncrypt(content, password) {
+            const key = password || genKey(32);
+            const enc = new TextEncoder();
+            const data = enc.encode(content);
+            const keyData = enc.encode(key.padEnd(32,'0').slice(0,32));
+            const cryptoKey = await crypto.subtle.importKey('raw', keyData, { name: 'AES-CBC' }, false, ['encrypt']);
+            const iv = crypto.getRandomValues(new Uint8Array(16));
+            const encrypted = await crypto.subtle.encrypt({ name: 'AES-CBC', iv: iv }, cryptoKey, data);
+            const combined = new Uint8Array(iv.length + encrypted.byteLength);
+            combined.set(iv);
+            combined.set(new Uint8Array(encrypted), iv.length);
+            return { encrypted: btoa(String.fromCharCode(...combined)), key: key };
+        }
+
+        async function highEncrypt(content, password) {
+            const key = password || genKey(64);
+            const first = await mediumEncrypt(content, key.slice(0,32));
+            const second = basicEncrypt(first.encrypted);
+            return { encrypted: second.encrypted, key: key };
+        }
+
+        function genKey(len) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+            let key = '';
+            const arr = new Uint8Array(len);
+            crypto.getRandomValues(arr);
+            for (let i = 0; i < len; i++) key += chars[arr[i] % chars.length];
+            return key;
+        }
+
+        function readFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+
+        function downloadBlob(content, name) {
+            const blob = new Blob([content], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = name;
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function formatSize(b) {
+            if (b < 1024) return b + ' B';
+            if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+            return (b/1048576).toFixed(1) + ' MB';
+        }
+
+        function copyKey() {
+            const key = document.getElementById('encKey').textContent;
+            navigator.clipboard.writeText(key).then(() => showToast('✅ تم نسخ المفتاح!'));
+        }
+
+        function resetForm() {
+            selectedFile = null;
+            document.getElementById('fileInfo').style.display = 'none';
+            document.getElementById('encBtn').disabled = true;
+            document.getElementById('fileInput').value = '';
+        }
+
+        function renderFiles() {
+            const container = document.getElementById('filesContainer');
+            const list = document.getElementById('filesList');
+            const count = document.getElementById('filesCount');
+
+            if (encryptedFiles.length === 0) {
+                list.style.display = 'none';
+                return;
+            }
+
+            list.style.display = 'block';
+            count.textContent = encryptedFiles.length;
+
+            container.innerHTML = encryptedFiles.map(f => `
+                <div class="file-item">
+                    <div>
+                        <div class="file-name">🔒 ${esc(f.encName)}</div>
+                        <div class="file-meta">${f.date} | ${f.level} | ${formatSize(f.size)}</div>
+                    </div>
+                    <button class="dl-btn" onclick="redownload('${f.id}')">📥 تحميل</button>
+                </div>
+            `).join('');
+        }
+
+        function redownload(id) {
+            const f = encryptedFiles.find(x => x.id === id);
+            if (f) {
+                downloadBlob(f.encContent, f.encName);
+                document.getElementById('keyDisplay').style.display = 'flex';
+                document.getElementById('encKey').textContent = f.key;
+                showToast('✅ احفظ المفتاح لفك التشفير!');
+            }
+        }
+
+        function esc(t) {
+            const d = document.createElement('div');
+            d.textContent = t;
+            return d.innerHTML;
+        }
+
+        function showToast(msg, type) {
+            const old = document.querySelector('.toast');
+            if (old) old.remove();
+            const t = document.createElement('div');
+            t.className = 'toast' + (type === 'error' ? ' error' : '');
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
